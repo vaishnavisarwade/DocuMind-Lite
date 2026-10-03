@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>DocuMind Lite</title>
+    <style>
+        :root { --bg:#f5f6fa; --card:#fff; --ink:#1f2430; --muted:#6b7280; --brand:#4f46e5; --line:#e5e7eb; --ok:#059669; --bad:#dc2626; --warn:#d97706; }
+        * { box-sizing: border-box; }
+        [hidden] { display:none !important; }
+        body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:var(--bg); color:var(--ink); }
+        h1,h3 { margin:0 0 8px; }
+        .muted { color:var(--muted); font-size:14px; }
+        .error { color:var(--bad); min-height:20px; font-size:14px; }
+        input, select { width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:15px; margin-bottom:10px; background:#fff; }
+        button { padding:10px 16px; border:0; border-radius:8px; background:var(--brand); color:#fff; font-size:15px; cursor:pointer; white-space:nowrap; }
+        button.secondary { background:#eef0ff; color:var(--brand); }
+        button.link { background:none; color:var(--muted); padding:6px 10px; }
+        button.danger { background:#fee2e2; color:var(--bad); padding:6px 12px; font-size:13px; }
+        button:disabled { opacity:.5; cursor:default; }
+        .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px; margin-bottom:16px; }
+        .center { max-width:400px; margin:8vh auto; }
+        .row { display:flex; gap:8px; align-items:flex-start; }
+        .row input, .row select { margin-bottom:0; }
+        .row select { width:auto; }
+        header { display:flex; justify-content:space-between; align-items:center; padding:14px 24px; background:#fff; border-bottom:1px solid var(--line); }
+        header b { font-size:18px; }
+        .layout { display:grid; grid-template-columns:240px 1fr; gap:20px; max-width:1100px; margin:20px auto; padding:0 16px; }
+        @media (max-width:760px) { .layout { grid-template-columns:1fr; } .row { flex-wrap:wrap; } }
+        ul { list-style:none; padding:0; margin:0 0 12px; }
+        #wsList li { padding:9px 12px; border-radius:8px; cursor:pointer; margin-bottom:4px; }
+        #wsList li:hover { background:#eef0ff; }
+        #wsList li.active { background:var(--brand); color:#fff; }
+        #wsList .role { font-size:11px; opacity:.75; margin-left:6px; text-transform:uppercase; }
+        .docwrap { padding:10px 0; border-bottom:1px solid var(--line); }
+        .doc { display:flex; justify-content:space-between; font-size:14px; }
+        .sum { font-size:13px; color:var(--muted); margin:6px 0; }
+        .chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+        .chip { padding:6px 12px; font-size:13px; background:#eef0ff; color:var(--brand); border-radius:99px; white-space:normal; text-align:left; }
+        .badge { font-size:12px; padding:2px 8px; border-radius:99px; background:#eee; }
+        .READY { background:#d1fae5; color:var(--ok); }
+        .PROCESSING { background:#fef3c7; color:var(--warn); }
+        .FAILED { background:#fee2e2; color:var(--bad); }
+        .OWNER { background:#e0e7ff; color:var(--brand); }
+        .EDITOR { background:#d1fae5; color:var(--ok); }
+        .VIEWER { background:#f3f4f6; color:var(--muted); }
+        #answer { margin-top:14px; }
+        .qline { font-weight:600; margin:16px 0 6px; }
+        .answerbox { padding:14px; border-radius:10px; background:#f8f9ff; border:1px solid #dfe2ff; white-space:pre-wrap; }
+        .answerbox.none { background:#fff7ed; border-color:#fed7aa; }
+        .answerbox.conflict { background:#fffbeb; border-color:#fcd34d; }
+        .src { margin-top:10px; padding:10px; border:1px solid var(--line); border-radius:8px; font-size:13px; background:#fff; }
+        .src b { color:var(--brand); }
+        .gap { padding:8px 0; border-bottom:1px solid var(--line); font-size:14px; }
+        .fb { margin-top:10px; display:flex; gap:6px; align-items:center; }
+        .fb button { padding:6px 12px; }
+        .bad { padding:10px 0; border-bottom:1px solid var(--line); font-size:14px; }
+        .bad .q { font-weight:600; }
+        .bad .a { color:var(--muted); margin-top:4px; white-space:pre-wrap; }
+        .stats { display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:10px; margin-bottom:14px; }
+        .stat { background:#f8f9ff; border:1px solid #dfe2ff; border-radius:10px; padding:12px; text-align:center; }
+        .stat b { display:block; font-size:22px; }
+        .bars { display:flex; gap:8px; align-items:flex-end; height:100px; margin:8px 0 14px; }
+        .barcol { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; }
+        .bar { width:100%; background:var(--brand); border-radius:4px 4px 0 0; min-height:2px; }
+        .barcol span { font-size:11px; color:var(--muted); margin-top:4px; }
+        .topq { display:flex; justify-content:space-between; gap:12px; padding:6px 0; border-bottom:1px solid var(--line); font-size:14px; }
+        .cmprow { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px; }
+        .cmp { overflow-x:auto; margin-top:12px; }
+        .cmp table { width:100%; border-collapse:collapse; font-size:14px; }
+        .cmp th, .cmp td { border:1px solid var(--line); padding:8px 10px; text-align:left; vertical-align:top; }
+        .cmp th { background:#f8f9ff; }
+        .cmp td.topic { font-weight:600; width:22%; }
+        .cmp td.diff { background:#fffbeb; }
+        .concl { margin-top:12px; }
+        .member { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--line); font-size:14px; }
+        .member .who { display:flex; flex-direction:column; }
+        .member .acts { display:flex; align-items:center; gap:8px; }
+    </style>
+</head>
+<body>
+
+<div id="auth" class="card center">
+    <h1>DocuMind Lite</h1>
+    <p class="muted">Ask questions about your documents. Every answer shows its sources.</p>
+    <input id="name" placeholder="Name (only needed for sign up)">
+    <input id="email" type="email" placeholder="Email">
+    <input id="password" type="password" placeholder="Password (8+ characters)">
+    <div class="row">
+        <button id="btnLogin">Log in</button>
+        <button id="btnRegister" class="secondary">Sign up</button>
+    </div>
+    <p id="authMsg" class="error"></p>
+</div>
+
+<div id="app" hidden>
+    <header>
+        <b>DocuMind Lite</b>
+        <div><span id="who" class="muted"></span> <button id="btnLogout" class="link">Log out</button></div>
+    </header>
+    <div class="layout">
+        <aside class="card">
+            <h3>Workspaces</h3>
+            <ul id="wsList"></ul>
+            <div class="row">
+                <input id="wsName" placeholder="New workspace">
+                <button id="btnWs">Add</button>
+            </div>
+        </aside>
+
+        <div>
+            <div id="hint" class="card muted">Create a workspace on the left to get started.</div>
+            <div id="main" hidden>
+                <section class="card">
+                    <h3>Documents</h3>
+                    <p class="muted">Upload PDF, Word, text or Markdown files. Each one gets a summary and suggested questions.</p>
+                    <div id="uploadRow" class="row">
+                        <input id="file" type="file">
+                        <button id="btnUpload">Upload</button>
+                    </div>
+                    <p id="viewOnlyNote" class="muted" hidden>You have view-only access to this workspace, so you can ask questions but not upload documents.</p>
+                    <p id="uploadMsg" class="error"></p>
+                    <div id="docs"></div>
+                </section>
+
+                <section class="card">
+                    <h3>Members</h3>
+                    <p class="muted">Your role: <span id="myRole" class="badge"></span>. Owners can invite people. Editors can upload, viewers can only read and ask.</p>
+                    <div id="members"></div>
+                    <div id="addMember" class="row" style="margin-top:12px">
+                        <input id="memEmail" type="email" placeholder="Teammate's email (they must have signed up)">
+                        <select id="memRole">
+                            <option value="EDITOR">Editor</option>
+                            <option value="VIEWER">Viewer</option>
+                        </select>
+                        <button id="btnAddMember">Invite</button>
+                    </div>
+                    <p id="memMsg" class="error"></p>
+                </section>
+
+                <section class="card">
+                    <h3>Compare two documents</h3>
+                    <p class="muted">Pick two documents to see how they differ, side by side.</p>
+                    <div class="cmprow">
+                        <select id="cmpA"></select>
+                        <select id="cmpB"></select>
+                    </div>
+                    <div class="row">
+                        <input id="cmpFocus" placeholder="Optional focus, e.g. leave days and remote work">
+                        <button id="btnCompare">Compare</button>
+                    </div>
+                    <p id="cmpMsg" class="error"></p>
+                    <div id="cmpResult"></div>
+                </section>
+
+                <section class="card">
+                    <h3>Ask a question</h3>
+                    <p class="muted">Follow-up questions work. If your documents disagree, you get a warning instead of a guess. Ask in English, Hindi or Marathi and the answer comes back in your language.</p>
+                    <div class="row">
+                        <input id="question" placeholder="e.g. How many vacation days do I get?">
+                        <span id="voiceBox" class="row">
+              <select id="voiceLang" title="Speaking language">
+                <option value="en-IN">English</option>
+                <option value="hi-IN">Hindi</option>
+                <option value="mr-IN">Marathi</option>
+              </select>
+              <button id="btnMic" class="secondary" type="button">🎤 Speak</button>
+            </span>
+                        <button id="btnAsk">Ask</button>
+                    </div>
+                    <div id="answer"></div>
+                    <button id="btnClear" class="link" type="button">Clear chat</button>
+                </section>
+
+                <section class="card">
+                    <h3>Analytics</h3>
+                    <p class="muted">How people use this workspace.</p>
+                    <div id="stats"></div>
+                </section>
+
+                <section class="card">
+                    <h3>Documentation gaps</h3>
+                    <p class="muted">Questions your documents could not answer. These show what is missing.</p>
+                    <div id="gaps"></div>
+                </section>
+
+                <section class="card">
+                    <h3>Answers to review</h3>
+                    <p class="muted">Answers marked with a thumbs down.</p>
+                    <div id="bad"></div>
+                </section>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let token = localStorage.getItem('token');
+    let userName = localStorage.getItem('userName') || '';
+    let currentWs = null;
+    let currentRole = 'OWNER';
+    let wsRoles = {};
+    let pollTimer = null;
+    let chatHistory = [];
+
+    const $ = id => document.getElementById(id);
+
+    function make(tag, text, cls) {
+        const e = document.createElement(tag);
+        if (text !== undefined) e.textContent = text;
+        if (cls) e.className = cls;
+        return e;
+    }
+
+    async function api(path, opts = {}) {
+        const headers = Object.assign({}, opts.headers || {});
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+        const res = await fetch(path, Object.assign({}, opts, { headers }));
+        if (!res.ok) {
+            const err = new Error('Request failed (' + res.status + ')');
+            err.status = res.status;
+            try {
+                const j = await res.clone().json();
+                if (j && j.message) err.serverMessage = j.message;
+            } catch (e) {
+                // response had no JSON body
+            }
+            if (res.status === 401 && token && !path.startsWith('/api/auth')) {
+                logout();
+                err.message = 'Session expired. Please log in again.';
+            }
+            throw err;
+        }
+        return res.json();
+    }
+
+    function showApp() {
+        $('auth').hidden = true;
+        $('app').hidden = false;
+        $('who').textContent = userName;
+        loadWorkspaces();
+    }
+
+    function logout() {
+        token = null;
+        localStorage.removeItem('token');
+        clearInterval(pollTimer);
+        currentWs = null;
+        chatHistory = [];
+        $('app').hidden = true;
+        $('auth').hidden = false;
+    }
+
+    async function doAuth(kind) {
+        $('authMsg').textContent = '';
+        const email = $('email').value.trim();
+        const password = $('password').value;
+        const name = $('name').value.trim();
+        try {
+            let data;
+            if (kind === 'register') {
+                data = await api('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, name })
+                });
+            } else {
+                data = await api('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+            }
+            token = data.token;
+            userName = data.name || data.email;
+            localStorage.setItem('token', token);
+            localStorage.setItem('userName', userName);
+            showApp();
+        } catch (e) {
+            if (e.status === 409) $('authMsg').textContent = 'That email is already registered. Try logging in.';
+            else if (e.status === 401) $('authMsg').textContent = 'Wrong email or password.';
+            else if (e.status === 400) $('authMsg').textContent = 'Please fill all fields. Password needs 8+ characters and a name for sign up.';
+            else $('authMsg').textContent = e.message;
+        }
+    }
+
+    function renderWorkspaces(list) {
+        wsRoles = {};
+        const ul = $('wsList');
+        ul.innerHTML = '';
+        list.forEach(w => {
+            wsRoles[w.id] = w.role;
+            const li = make('li', w.name, w.id === currentWs ? 'active' : '');
+            if (w.role && w.role !== 'OWNER') li.appendChild(make('span', w.role, 'role'));
+            li.onclick = () => selectWorkspace(w.id);
+            ul.appendChild(li);
+        });
+    }
+
+    async function loadWorkspaces() {
+        const list = await api('/api/workspaces');
+        renderWorkspaces(list);
+        if (list.length && currentWs === null) selectWorkspace(list[0].id);
+        $('hint').hidden = list.length > 0;
+        $('main').hidden = currentWs === null;
+    }
+
+    async function createWorkspace() {
+        const name = $('wsName').value.trim();
+        if (!name) return;
+        const w = await api('/api/workspaces', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name })
+        });
+        $('wsName').value = '';
+        selectWorkspace(w.id);
+    }
+
+    function applyRole() {
+        const canEdit = currentRole !== 'VIEWER';
+        $('uploadRow').hidden = !canEdit;
+        $('viewOnlyNote').hidden = canEdit;
+        $('addMember').hidden = currentRole !== 'OWNER';
+        const badge = $('myRole');
+        badge.textContent = currentRole;
+        badge.className = 'badge ' + currentRole;
+    }
+
+    async function selectWorkspace(id) {
+        currentWs = id;
+        chatHistory = [];
+        $('main').hidden = false;
+        $('hint').hidden = true;
+        $('answer').innerHTML = '';
+        $('cmpResult').innerHTML = '';
+        $('cmpMsg').textContent = '';
+        $('memMsg').textContent = '';
+        $('uploadMsg').textContent = '';
+        renderWorkspaces(await api('/api/workspaces'));
+        currentRole = wsRoles[id] || 'VIEWER';
+        applyRole();
+        loadDocs();
+        loadMembers();
+        loadGaps();
+        loadBad();
+        loadStats();
+    }
+
+    async function loadMembers() {
+        if (currentWs === null) return;
+        try {
+            const list = await api('/api/workspaces/' + currentWs + '/members');
+            const box = $('members');
+            box.innerHTML = '';
+            list.forEach(m => {
+                const row = make('div', undefined, 'member');
+                const who = make('div', undefined, 'who');
+                who.appendChild(make('b', m.name || m.email));
+                who.appendChild(make('span', m.email, 'muted'));
+                row.appendChild(who);
+                const acts = make('div', undefined, 'acts');
+                acts.appendChild(make('span', m.role, 'badge ' + m.role));
+                if (currentRole === 'OWNER' && m.role !== 'OWNER') {
+                    const rm = make('button', 'Remove', 'danger');
+                    rm.type = 'button';
+                    rm.onclick = () => removeMember(m.email);
+                    acts.appendChild(rm);
+                }
+                row.appendChild(acts);
+                box.appendChild(row);
+            });
+        } catch (e) {
+            $('members').textContent = 'Could not load members.';
+        }
+    }
+
+    async function addMember() {
+        $('memMsg').textContent = '';
+        const email = $('memEmail').value.trim();
+        if (!email) { $('memMsg').textContent = 'Enter your teammate\'s email.'; return; }
+        try {
+            await api('/api/workspaces/' + currentWs + '/members', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, role: $('memRole').value })
+            });
+            $('memEmail').value = '';
+            loadMembers();
+        } catch (e) {
+            $('memMsg').textContent = e.serverMessage || e.message;
+        }
+    }
+
+    async function removeMember(email) {
+        $('memMsg').textContent = '';
+        try {
+            await api('/api/workspaces/' + currentWs + '/members?email=' + encodeURIComponent(email), { method: 'DELETE' });
+            loadMembers();
+        } catch (e) {
+            $('memMsg').textContent = e.serverMessage || e.message;
+        }
+    }
+
+    function fillCompare(docs) {
+        const ready = docs.filter(d => d.status === 'READY');
+        [['cmpA', 0], ['cmpB', 1]].forEach(pair => {
+            const sel = $(pair[0]);
+            const prev = sel.value;
+            sel.innerHTML = '';
+            ready.forEach(d => {
+                const o = document.createElement('option');
+                o.value = d.id;
+                o.textContent = d.fileName;
+                sel.appendChild(o);
+            });
+            if (prev && ready.some(d => String(d.id) === prev)) sel.value = prev;
+            else if (ready[pair[1]]) sel.value = String(ready[pair[1]].id);
+        });
+    }
+
+    async function loadDocs() {
+        if (currentWs === null) return;
+        const docs = await api('/api/workspaces/' + currentWs + '/documents');
+        const box = $('docs');
+        box.innerHTML = '';
+        if (!docs.length) box.appendChild(make('p', 'No documents yet.', 'muted'));
+        docs.forEach(d => {
+            const wrap = make('div', undefined, 'docwrap');
+            const row = make('div', undefined, 'doc');
+            row.appendChild(make('span', d.fileName + (d.chunkCount ? ' (' + d.chunkCount + ' chunks)' : '')));
+            row.appendChild(make('span', d.status, 'badge ' + d.status));
+            if (d.status === 'FAILED' && d.errorMessage) row.title = d.errorMessage;
+            wrap.appendChild(row);
+            if (d.summary) wrap.appendChild(make('div', d.summary, 'sum'));
+            if (d.suggestedQuestions && d.suggestedQuestions.length) {
+                const chips = make('div', undefined, 'chips');
+                d.suggestedQuestions.forEach(text => {
+                    const chip = make('button', text, 'chip');
+                    chip.type = 'button';
+                    chip.onclick = () => { $('question').value = text; ask(); };
+                    chips.appendChild(chip);
+                });
+                wrap.appendChild(chips);
+            }
+            box.appendChild(wrap);
+        });
+        fillCompare(docs);
+        clearInterval(pollTimer);
+        if (docs.some(d => d.status === 'PROCESSING')) {
+            pollTimer = setInterval(loadDocs, 3000);
+        }
+    }
+
+    async function upload() {
+        $('uploadMsg').textContent = '';
+        const f = $('file').files[0];
+        if (!f) { $('uploadMsg').textContent = 'Choose a file first.'; return; }
+        const fd = new FormData();
+        fd.append('file', f);
+        try {
+            await api('/api/workspaces/' + currentWs + '/documents', { method: 'POST', body: fd });
+            $('file').value = '';
+            loadDocs();
+        } catch (e) {
+            $('uploadMsg').textContent = 'Upload failed: ' + (e.serverMessage || e.message);
+        }
+    }
+
+    function renderComparison(r, box) {
+        box.innerHTML = '';
+        let data = null;
+        try {
+            let t = (r.comparison || '').trim();
+            t = t.replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();
+            const s = t.indexOf('{');
+            const e = t.lastIndexOf('}');
+            if (s !== -1 && e > s) data = JSON.parse(t.slice(s, e + 1));
+        } catch (err) {
+            data = null;
+        }
+        if (!data || !Array.isArray(data.rows)) {
+            box.appendChild(make('div', r.comparison || 'No comparison returned.', 'answerbox'));
+            return;
+        }
+        if (data.rows.length) {
+            const wrap = make('div', undefined, 'cmp');
+            const table = document.createElement('table');
+            const head = document.createElement('tr');
+            ['Topic', r.fileA, r.fileB].forEach(h => head.appendChild(make('th', h)));
+            table.appendChild(head);
+            data.rows.forEach(row => {
+                const a = String(row.a == null ? '' : row.a);
+                const b = String(row.b == null ? '' : row.b);
+                const same = a.trim().toLowerCase() === b.trim().toLowerCase();
+                const tr = document.createElement('tr');
+                tr.appendChild(make('td', String(row.topic || ''), 'topic'));
+                tr.appendChild(make('td', a, same ? '' : 'diff'));
+                tr.appendChild(make('td', b, same ? '' : 'diff'));
+                table.appendChild(tr);
+            });
+            wrap.appendChild(table);
+            box.appendChild(wrap);
+        } else {
+            box.appendChild(make('p', 'These two documents have no topics in common.', 'muted'));
+        }
+        if (data.conclusion) {
+            box.appendChild(make('div', 'Conclusion: ' + data.conclusion, 'answerbox concl'));
+        }
+    }
+
+    async function compare() {
+        $('cmpMsg').textContent = '';
+        const a = $('cmpA').value;
+        const b = $('cmpB').value;
+        if (!a || !b) { $('cmpMsg').textContent = 'You need at least two READY documents.'; return; }
+        if (a === b) { $('cmpMsg').textContent = 'Pick two different documents.'; return; }
+        const box = $('cmpResult');
+        box.innerHTML = '';
+        box.appendChild(make('p', 'Comparing...', 'muted'));
+        $('btnCompare').disabled = true;
+        try {
+            const r = await api('/api/workspaces/' + currentWs + '/compare', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ documentA: Number(a), documentB: Number(b), focus: $('cmpFocus').value.trim() })
+            });
+            renderComparison(r, box);
+        } catch (e) {
+            box.innerHTML = '';
+            $('cmpMsg').textContent = 'Comparison failed: ' + (e.serverMessage || e.message);
+        } finally {
+            $('btnCompare').disabled = false;
+        }
+    }
+
+    async function sendFeedback(queryId, value, box) {
+        try {
+            await api('/api/workspaces/' + currentWs + '/feedback', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ queryId, value })
+            });
+            box.innerHTML = '';
+            box.appendChild(make('span', value === 1 ? 'Thanks for the feedback!' : 'Thanks, saved for review.', 'muted'));
+            loadBad();
+            loadStats();
+        } catch (e) {
+            box.appendChild(make('span', ' Could not save feedback.', 'error'));
+        }
+    }
+
+    async function ask() {
+        const q = $('question').value.trim();
+        if (!q || $('btnAsk').disabled) return;
+        const thread = $('answer');
+        $('question').value = '';
+        $('btnAsk').disabled = true;
+
+        const turn = make('div');
+        turn.appendChild(make('div', q, 'qline'));
+        const box = make('div', 'Thinking...', 'answerbox');
+        turn.appendChild(box);
+        thread.appendChild(turn);
+        turn.scrollIntoView({ behavior: 'smooth', block: 'end' });
+
+        let full = '';
+        let meta = null;
+
+        const handleEvent = raw => {
+            let name = 'message';
+            let data = '';
+            raw.split('\n').forEach(line => {
+                if (line.startsWith('event:')) name = line.slice(6).trim();
+                else if (line.startsWith('data:')) data += line.slice(5).trim();
+            });
+            if (!data) return;
+            const obj = JSON.parse(data);
+            if (name === 'token') {
+                full += obj.t;
+                const t = full.trim();
+                const upper = t.toUpperCase();
+                if (t.length === 0 || 'NO_ANSWER'.startsWith(upper) || 'CONFLICT:'.startsWith(upper)) {
+                    // wait for more text before showing anything
+                } else if (upper.startsWith('CONFLICT:')) {
+                    box.textContent = '\u26A0\uFE0F Sources disagree. ' + t.slice(9).trim();
+                    box.className = 'answerbox conflict';
+                } else {
+                    box.textContent = full;
+                }
+            } else if (name === 'meta') {
+                meta = obj;
+            } else if (name === 'error') {
+                throw new Error(obj.message);
+            }
+        };
+
+        try {
+            const res = await fetch('/api/workspaces/' + currentWs + '/ask/stream', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify({ question: q, history: chatHistory })
+            });
+            if (res.status === 401) { logout(); return; }
+            if (!res.ok) throw new Error('Request failed (' + res.status + ')');
+
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) break;
+                buffer += decoder.decode(value, { stream: true }).replace(/\r\n/g, '\n');
+                let idx;
+                while ((idx = buffer.indexOf('\n\n')) !== -1) {
+                    const raw = buffer.slice(0, idx);
+                    buffer = buffer.slice(idx + 2);
+                    handleEvent(raw);
+                }
+            }
+            if (!meta) throw new Error('No response received');
+
+            box.textContent = meta.answer;
+            const isConflict = meta.answered && meta.answer.indexOf('\u26A0') === 0;
+            box.className = 'answerbox' + (meta.answered ? (isConflict ? ' conflict' : '') : ' none');
+            (meta.sources || []).forEach(s => {
+                const d = make('div', undefined, 'src');
+                d.appendChild(make('b', '[' + s.ref + '] ' + s.fileName));
+                d.appendChild(make('span', '  match ' + s.score.toFixed(2), 'muted'));
+                d.appendChild(make('div', s.snippet));
+                turn.appendChild(d);
+            });
+            if (meta.queryId) {
+                const fb = make('div', undefined, 'fb');
+                fb.appendChild(make('span', 'Was this helpful?', 'muted'));
+                const up = make('button', '👍', 'secondary');
+                const down = make('button', '👎', 'secondary');
+                up.onclick = () => sendFeedback(meta.queryId, 1, fb);
+                down.onclick = () => sendFeedback(meta.queryId, -1, fb);
+                fb.appendChild(up);
+                fb.appendChild(down);
+                turn.appendChild(fb);
+            }
+            chatHistory.push({ role: 'user', text: q });
+            chatHistory.push({ role: 'assistant', text: meta.answer });
+            if (chatHistory.length > 8) chatHistory = chatHistory.slice(-8);
+            if (!meta.answered) loadGaps();
+            loadStats();
+        } catch (e) {
+            box.className = 'answerbox none';
+            box.textContent = 'Something went wrong: ' + e.message;
+        } finally {
+            $('btnAsk').disabled = false;
+        }
+    }
+
+    async function loadGaps() {
+        if (currentWs === null) return;
+        const gaps = await api('/api/workspaces/' + currentWs + '/gaps');
+        const box = $('gaps');
+        box.innerHTML = '';
+        if (!gaps.length) box.appendChild(make('p', 'No gaps yet. Great!', 'muted'));
+        gaps.forEach(g => box.appendChild(make('div', g.question, 'gap')));
+    }
+
+    async function loadBad() {
+        if (currentWs === null) return;
+        try {
+            const items = await api('/api/workspaces/' + currentWs + '/feedback/negative');
+            const box = $('bad');
+            box.innerHTML = '';
+            if (!items.length) box.appendChild(make('p', 'Nothing to review yet.', 'muted'));
+            items.forEach(b => {
+                const d = make('div', undefined, 'bad');
+                d.appendChild(make('div', b.question, 'q'));
+                d.appendChild(make('div', b.answer, 'a'));
+                box.appendChild(d);
+            });
+        } catch (e) {
+            // feedback list is optional; ignore errors
+        }
+    }
+
+    async function loadStats() {
+        if (currentWs === null) return;
+        try {
+            const s = await api('/api/workspaces/' + currentWs + '/analytics');
+            const box = $('stats');
+            box.innerHTML = '';
+            if (!s.total) {
+                box.appendChild(make('p', 'No questions yet. Ask something and the numbers appear here.', 'muted'));
+                return;
+            }
+            const tiles = make('div', undefined, 'stats');
+            [
+                [String(s.total), 'Questions'],
+                [(100 - s.refusalRate).toFixed(0) + '%', 'Answered'],
+                [(s.avgLatencyMs / 1000).toFixed(1) + 's', 'Avg response'],
+                [s.thumbsUp + ' / ' + s.thumbsDown, '👍 / 👎']
+            ].forEach(pair => {
+                const t = make('div', undefined, 'stat');
+                t.appendChild(make('b', pair[0]));
+                t.appendChild(make('span', pair[1], 'muted'));
+                tiles.appendChild(t);
+            });
+            box.appendChild(tiles);
+
+            box.appendChild(make('div', 'Questions per day (last 7 days)', 'muted'));
+            const max = Math.max(1, ...s.perDay.map(d => d.count));
+            const bars = make('div', undefined, 'bars');
+            s.perDay.forEach(d => {
+                const col = make('div', undefined, 'barcol');
+                const bar = make('div', undefined, 'bar');
+                bar.style.height = (d.count / max * 100) + '%';
+                bar.title = d.date + ': ' + d.count;
+                col.appendChild(bar);
+                col.appendChild(make('span', d.date.slice(5)));
+                bars.appendChild(col);
+            });
+            box.appendChild(bars);
+
+            box.appendChild(make('div', 'Most asked questions', 'muted'));
+            s.topQuestions.forEach(t => {
+                const row = make('div', undefined, 'topq');
+                row.appendChild(make('span', t.question));
+                row.appendChild(make('b', t.count + 'x'));
+                box.appendChild(row);
+            });
+        } catch (e) {
+            // analytics are optional; ignore errors
+        }
+    }
+
+    // Voice input (works in Chrome and Edge)
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRec) {
+        $('voiceBox').hidden = true;
+    } else {
+        let rec = null;
+        $('btnMic').onclick = () => {
+            if (rec) { rec.stop(); return; }
+            rec = new SpeechRec();
+            rec.lang = $('voiceLang').value;
+            rec.interimResults = false;
+            rec.onstart = () => { $('btnMic').textContent = '⏹ Listening...'; };
+            rec.onresult = e => { $('question').value = e.results[0][0].transcript; };
+            rec.onerror = () => { $('btnMic').textContent = '🎤 Speak'; rec = null; };
+            rec.onend = () => { $('btnMic').textContent = '🎤 Speak'; rec = null; };
+            rec.start();
+        };
+    }
+
+    $('btnLogin').onclick = () => doAuth('login');
+    $('btnRegister').onclick = () => doAuth('register');
+    $('btnLogout').onclick = logout;
+    $('btnWs').onclick = createWorkspace;
+    $('btnUpload').onclick = upload;
+    $('btnAsk').onclick = ask;
+    $('btnCompare').onclick = compare;
+    $('btnAddMember').onclick = addMember;
+    $('btnClear').onclick = () => { chatHistory = []; $('answer').innerHTML = ''; };
+    $('question').addEventListener('keydown', e => { if (e.key === 'Enter') ask(); });
+    $('wsName').addEventListener('keydown', e => { if (e.key === 'Enter') createWorkspace(); });
+    $('memEmail').addEventListener('keydown', e => { if (e.key === 'Enter') addMember(); });
+
+    if (token) showApp();
+</script>
+</body>
+</html>

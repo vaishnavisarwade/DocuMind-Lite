@@ -1,0 +1,42 @@
+server:
+  port: 8081
+  error:
+    include-message: always
+
+spring:
+  config:
+    import: optional:file:./secret.yml
+  datasource:
+    url: jdbc:postgresql://localhost:5432/documind
+    username: documind
+    password: documind
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+  ai:
+    google:
+      genai:
+        chat:
+          options:
+            model: gemini-3.5-flash-lite
+        embedding:
+          text:
+            options:
+              model: gemini-embedding-001
+              dimensions: 768
+    vectorstore:
+      pgvector:
+        initialize-schema: true
+        dimensions: 768
+        distance-type: COSINE_DISTANCE
+        index-type: HNSW
+
+app:
+  jwt:
+    secret: change-this-to-a-long-random-string-at-least-32-characters-long
+    expiration-ms: 86400000

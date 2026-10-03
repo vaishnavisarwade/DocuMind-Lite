@@ -1,0 +1,8 @@
+Acme Corp IT Security Policy
+
+Passwords must be at least 12 characters long and changed every 90 days.
+Employees must enable two-factor authentication on all company accounts.
+Company laptops must use full-disk encryption and lock automatically after 5 minutes of inactivity.
+Report lost or stolen devices to the IT helpdesk within 2 hours.
+Public Wi-Fi may only be used together with the company VPN.
+Personal USB drives are not allowed on company computers.

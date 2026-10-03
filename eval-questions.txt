@@ -1,0 +1,22 @@
+How many vacation days do I get per year?|24
+Can I carry over unused leave to the next year?|10
+How many sick days are allowed per year?|12
+When do I need a doctor's note?|3
+How early must I apply for annual leave?|7
+Where do I apply for leave?|HR portal
+How many days can I work from home each week?|3
+Who has to approve remote work?|manager
+Is the office open on public holidays?|closed
+How many days of paid time off do full-time staff get?|24
+What is the maximum leave I can roll over?|10
+How many consecutive sick days before a certificate is required?|3
+What is the capital of France?|REFUSE
+Who is the CEO of Acme Corp?|REFUSE
+What is the company health insurance coverage?|REFUSE
+How much is the annual bonus?|REFUSE
+What is the dress code?|REFUSE
+How many days of maternity leave do I get?|REFUSE
+What are the office working hours?|REFUSE
+What is the salary of a software engineer?|REFUSE
+Does the company offer stock options?|REFUSE
+What is the weather in Pune today?|REFUSE
